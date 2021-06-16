@@ -30,7 +30,7 @@
             <el-button type="primary" icon="el-icon-edit" size="mini" @click="editUserInfo(scope.row)"></el-button>
             <el-button type="danger" icon="el-icon-delete"  size="mini" @click="delUser(scope.row)"></el-button>
             <el-tooltip class="item" effect="dark" content="分配角色" placement="top" :enterable="false">
-                <el-button type="warning" icon="el-icon-setting" size="mini"></el-button>
+                <el-button type="warning" icon="el-icon-setting" size="mini" @click="setUserRole(scope.row)"></el-button>
             </el-tooltip>
           </template>
         </el-table-column>
@@ -94,6 +94,28 @@
       </span>
     </el-dialog>
 
+    <!-- 分配角色对话框 -->
+    <el-dialog title="分配角色" :visible.sync="roleDia" width="50%"  @close="closeRoleDialog">
+      <div>
+        <p>当前的用户：{{userInfo.username}}</p>
+        <p>当前的角色：{{userInfo.role_name}}</p>
+        <p>
+          分配新角色：
+          <el-select v-model="selRoleId" placeholder="请选择">
+            <el-option
+              v-for="item in allRoles"
+              :key="item.id"
+              :label="item.roleName"
+              :value="item.id">
+            </el-option>
+          </el-select>
+        </p>
+      </div>
+      <span slot="footer" class="dialog-footer">
+        <el-button @click="closeRoleDialog">取 消</el-button>
+        <el-button type="primary" @click="alloRole">确 定</el-button>
+      </span>
+    </el-dialog>
 
 
   </el-card>
@@ -164,6 +186,10 @@ export default {
         },
         modUserDia:false,//修改用户的对话框modUserDia
         modform:{},
+        roleDia:false,//分配角色对话框
+        userInfo:{},//需要被分配角色的用户信息
+        allRoles:[],//所有角色
+        selRoleId:"",//选中的角色id
       }
     },
     created(){
@@ -201,7 +227,7 @@ export default {
       },
       //状态改变时
       userStateChange(newUserInfo){
-        console.log(newUserInfo);
+        // console.log(newUserInfo);
         request({
           url:`/users/${newUserInfo.id}/state/${newUserInfo.mg_state}`,
           methods:"put"
@@ -318,7 +344,50 @@ export default {
             message: '已取消删除'
           });          
         });
-      }
+      },
+      //关闭分配角色对话框
+      closeRoleDialog(){
+        this.roleDia = false ;
+        this.selRoleId = "";
+        this.userInfo = {};
+      },
+      //弹出分配角色对话框
+      setUserRole(userinfo){
+        this.roleDia = true ;
+        this.userInfo = userinfo;
+        request({
+          url:`/roles`,
+          methods:"get"
+        }).then(res => {
+          const {data,meta} = res ;
+          if(meta.status != 200){
+            return this.$message.error(meta.msg);
+          }else{
+            this.allRoles = data;
+          }
+        })
+      },
+      //角色分配完成
+      alloRole(){
+        if(!this.selRoleId){
+          return this.$message.error("请选择一个角色");
+        }
+        request({
+          url:`/users/${this.userInfo.id}/role`,
+          methods:"put",
+          params:{
+            rid:this.selRoleId
+          }
+        }).then(res => {
+          // console.log(res);
+          const {data,meta} = res ;
+          if(meta.status != 200){
+            return this.$message.error(meta.msg);
+          }else{
+            this.closeRoleDialog();
+          }
+        })
+      },
 
     },
 }

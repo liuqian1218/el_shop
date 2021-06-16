@@ -86,6 +86,8 @@ export default {
   }
   .el-main{
     background-color: #eaedf1;
+    height:calc( 100vh - 60px );
+    overflow: scroll;
   }
   .home-container{
     height:100%;
