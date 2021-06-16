@@ -10,6 +10,7 @@ export function request(config){
     instance1.interceptors.request.use(config => {
         //请求成功,config即配置
         // console.log(config);
+        config.headers.Authorization = window.sessionStorage.getItem("token")
         return config;
     },err => {
         //请求失败
