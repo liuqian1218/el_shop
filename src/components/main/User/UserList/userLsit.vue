@@ -221,7 +221,7 @@ export default {
       },
       //页码发生改变时
       handleCurrentChange(newPage){
-        console.log(newPage);
+        // console.log(newPage);
         this.queryInfo.pagenum = newPage;
         this.getUsers();
       },
